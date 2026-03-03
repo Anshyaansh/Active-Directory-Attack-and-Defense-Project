@@ -1,0 +1,19 @@
+Project Description — Active Directory Purple Team Lab
+
+This project is a structured Active Directory Attack & Detection Engineering Framework built from the ground up inside a self-designed lab environment. I executed multi-stage AD attack chains up to Method 6, covering privilege escalation paths, credential access techniques, Kerberos abuse, and post-exploitation movement. Every technique was tested in a controlled domain environment, documented step-by-step, and validated through real telemetry instead of theoretical assumptions.
+
+What differentiates this project is that exploitation was not the endpoint. The lab was fully integrated with Microsoft Sentinel, Microsoft Defender for Endpoint, Advanced Hunting queries, and native Windows logging through Event Viewer. More than 90% of attack traces were correlated directly inside Sentinel, allowing visibility into authentication anomalies, privilege assignments, Kerberos ticket abuse, and credential dumping artifacts. Each technique was mapped with precise Event IDs, associated log sources, custom detection queries, and a structured mitigation strategy aligned with defensive best practices.
+
+Rather than treating red and blue activities as separate disciplines, this project approaches them as a unified system. Every attack was analyzed in terms of protocol behavior, directory object impact, telemetry generation, and detection feasibility. The result is not simply an exploitation walkthrough, but a documented understanding of how attack chains propagate and how defenders should instrument detection engineering to interrupt them.
+
+The work currently pauses after Method 6. The next phase will extend into:
+
+Group-based abuse
+
+Persistence mechanisms
+
+Active Directory Certificate Services (ADCS) misconfiguration attacks
+
+Continued execution and structured documentation
+
+This lab represents a practical purple-team methodology: simulate, observe, correlate, detect, harden, and iterate.
