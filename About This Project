@@ -1,19 +1,398 @@
-Project Description — Active Directory Purple Team Lab
+# Active Directory Pentesting & Detection Lab
 
-This project is a structured Active Directory Attack & Detection Engineering Framework built from the ground up inside a self-designed lab environment. I executed multi-stage AD attack chains up to Method 6, covering privilege escalation paths, credential access techniques, Kerberos abuse, and post-exploitation movement. Every technique was tested in a controlled domain environment, documented step-by-step, and validated through real telemetry instead of theoretical assumptions.
+A **hands-on Active Directory security lab** designed to simulate real-world **enterprise attack paths** and study both **offensive techniques and defensive detection mechanisms**.
 
-What differentiates this project is that exploitation was not the endpoint. The lab was fully integrated with Microsoft Sentinel, Microsoft Defender for Endpoint, Advanced Hunting queries, and native Windows logging through Event Viewer. More than 90% of attack traces were correlated directly inside Sentinel, allowing visibility into authentication anomalies, privilege assignments, Kerberos ticket abuse, and credential dumping artifacts. Each technique was mapped with precise Event IDs, associated log sources, custom detection queries, and a structured mitigation strategy aligned with defensive best practices.
+The project demonstrates how an attacker can move through an **Active Directory environment**, starting from **initial foothold** and progressing to **credential dumping and Kerberos ticket abuse**.
 
-Rather than treating red and blue activities as separate disciplines, this project approaches them as a unified system. Every attack was analyzed in terms of protocol behavior, directory object impact, telemetry generation, and detection feasibility. The result is not simply an exploitation walkthrough, but a documented understanding of how attack chains propagate and how defenders should instrument detection engineering to interrupt them.
+Each stage is documented with:
 
-The work currently pauses after Method 6. The next phase will extend into:
+- attack methodology
+- tools used
+- command execution
+- attack flow
+- detection opportunities
+- mitigation strategies
 
-Group-based abuse
+The objective is to understand the **full Active Directory attack lifecycle** and how security teams can detect and prevent these techniques.
 
-Persistence mechanisms
+---
 
-Active Directory Certificate Services (ADCS) misconfiguration attacks
+# Lab Architecture
 
-Continued execution and structured documentation
+!https://miro.medium.com/v2/resize%3Afit%3A1200/1%2A8MuBbvWdV7jkGYWSYLrPpQ.png
 
-This lab represents a practical purple-team methodology: simulate, observe, correlate, detect, harden, and iterate.
+!https://cloudbrothers.info/azure-attack-paths/images/AzureDominancePathsColor.png
+
+https://www.researchgate.net/publication/336623025/figure/fig2/AS%3A815150235922433%401571358369417/Flowchart-showing-SIEM-architecture-for-cyber-kill-chain-model.ppm
+
+4
+
+The lab simulates a **real enterprise environment** with an attacker machine interacting with an internal Active Directory domain.
+
+### Infrastructure Components
+
+| Component | Role |
+| --- | --- |
+| **Kali Linux** | Attacker machine used for penetration testing |
+| **Windows Server 2019 (DC01)** | Domain Controller hosting Active Directory |
+| **Windows 10 Workstation** | Domain-joined client machine |
+| **Azure Sentinel** | SIEM used for detection and monitoring |
+| **Log Analytics Workspace** | Centralized log collection |
+| **Sysmon + Windows Event Logs** | Telemetry generation |
+
+The setup allows simulation of:
+
+- domain enumeration
+- privilege escalation
+- credential theft
+- Kerberos attacks
+- lateral movement
+- detection engineering
+
+---
+
+# Active Directory Attack Path
+
+!https://www.mdpi.com/electronics/electronics-11-02629/article_deploy/html/images/electronics-11-02629-g002-550.jpg
+
+!https://cymulate.com/uploaded-files/2025/05/Credential-Dumping-Attack-Flow.png
+
+!https://assets.beyondtrust.com/assets/images/upm-attack-chain.png?auto=format&fit=clip&lossless=1&q=85&w=518
+
+4
+
+The lab follows a **structured Active Directory attack chain**.
+
+| Module | Attack Phase | Description |
+| --- | --- | --- |
+| M1 | Initial Exploitation | Network poisoning and credential capture |
+| M2 | AD Enumeration | Mapping domain users, computers and privileges |
+| M3 | DACL Abuse | Exploiting misconfigured permissions |
+| M4 | Kerberos Abuse | Roasting attacks and authentication abuse |
+| M5 | Credential Dumping | Extracting credentials from system databases |
+| M6 | Kerberos Ticket Attacks | Forging and abusing Kerberos tickets |
+
+Modules **M7–M10** extend into privilege escalation, persistence and ADCS exploitation.
+
+---
+
+# Lab Setup
+
+## 1. Infrastructure
+
+Create the following machines:
+
+| Machine | OS | Purpose |
+| --- | --- | --- |
+| Attacker | Kali Linux | Offensive operations |
+| Domain Controller | Windows Server 2019 | Active Directory domain |
+| Client Machine | Windows 10 | Domain user workstation |
+
+Network configuration:
+
+```
+Internal Network
+    |
+Kali Linux (Attacker)
+    |
+Windows Domain Controller
+    |
+Domain Workstation
+```
+
+---
+
+## 2. Domain Setup
+
+Install **Active Directory Domain Services** on the server.
+
+Example domain:
+
+```
+lab.local
+```
+
+Create domain users and groups for testing:
+
+Example users used in this lab:
+
+```
+naruto_uzumaki
+sasuke_uchiha
+sakura_haruno
+kakashi_hatake
+hinata_hyuga
+shikamaru_nara
+ino_yamanaka
+```
+
+Example enumeration output:
+
+!https://miro.medium.com/v2/resize%3Afit%3A1400/1%2Afb9wK50FZNOLNzc80sZlFg.png
+
+!https://miro.medium.com/v2/resize%3Afit%3A2720/1%2AR9LegDg0xEGHBemgSwq96Q.png
+
+https://api-broadcomcms-software.wolkenservicedesk.com/es/attachments/get_attachment_content?uniqueFileId=1465072060768
+
+4
+
+---
+
+# Monitoring & Detection Setup
+
+Logs from the domain environment are forwarded to **Azure Sentinel** for analysis.
+
+Collected telemetry:
+
+- Windows Security Logs
+- Active Directory Audit Logs
+- Sysmon Events
+- Authentication logs
+
+Detection examples implemented:
+
+- LSASS memory dump detection
+- abnormal Kerberos ticket requests
+- Kerberoasting activity
+- suspicious replication (DCSync)
+
+Example detection workflow:
+
+```
+Domain Logs
+      ↓
+Log Analytics Workspace
+      ↓
+Microsoft Threat Intelligence
+      ↓
+Detection Rules
+      ↓
+Security Alerts
+```
+
+---
+
+# Tools Used
+
+| Tool | Purpose |
+| --- | --- |
+| Responder | LLMNR / NBT-NS poisoning |
+| BloodHound | AD privilege graph analysis |
+| PowerView | PowerShell AD enumeration |
+| RPCClient | SMB enumeration |
+| Impacket | Credential dumping and Kerberos abuse |
+| NetExec | SMB and LDAP enumeration |
+| ADRecon | Domain reconnaissance automation |
+
+---
+
+# AD Enumeration (BloodHound)
+
+!https://www.researchgate.net/publication/374027730/figure/fig4/AS%3A11431281219225460%401705979207840/Attack-paths-example-with-BloodHound.png
+
+!https://images.contentstack.io/v3/assets/blt36c2e63521272fdc/blt1ca2179301629d11/60c14f85d475801b9d54ffae/22.JPG
+
+!https://cdn.sanity.io/images/r09655ln/production/94abf94357531122b918db6b9e130529dc86933e-1527x847.webp
+
+4
+
+BloodHound is used to visualize **privilege relationships** inside the domain.
+
+It allows identification of:
+
+- privilege escalation paths
+- vulnerable ACL permissions
+- group membership abuse
+- lateral movement opportunities
+
+---
+
+# Delegation Enumeration
+
+Example enumeration using **Impacket**:
+
+```
+impacket-findDelegation lab.local/user:password -dc-ip <DC_IP>
+```
+
+Example output:
+
+!https://blog.sentry.security/content/images/2025/05/unnamed--1-.png
+
+!https://www.crowe.com/-/media/crowe/llp/sc10-media/insights/publications/cybersecurity-watch/content-2000x1125/cduw2301-001s-delegation-graphics-exhibit-2.jpg?h=3650&hash=2A53557B4E6478D92971462D98631B24&iar=0&rev=43173906a35b40a28ad5c796ff4812d9&w=5195
+
+!https://cdn.sanity.io/images/r09655ln/production/6a437fca35b707143d76aceb1258e61b7d2aeee5-327x442.png
+
+4
+
+This helps identify:
+
+- **Unconstrained Delegation**
+- **Constrained Delegation**
+- **Resource-Based Constrained Delegation**
+
+---
+
+# Implemented Attack Modules
+
+## M1 — Initial AD Exploitation
+
+Technique:
+
+**LLMNR / NBT-NS Poisoning**
+
+Example command:
+
+```
+responder -I eth0 -dv
+```
+
+Goal:
+
+Capture **NTLM authentication hashes** when DNS resolution fails.
+
+Detection:
+
+- monitor LLMNR traffic
+- disable legacy name resolution protocols
+
+---
+
+## M2 — AD Post Enumeration
+
+Tools used:
+
+- BloodHound
+- RPCClient
+- PowerView
+- NetExec
+- ADRecon
+
+Goal:
+
+Discover:
+
+- users
+- computers
+- domain trusts
+- privilege escalation paths
+
+---
+
+## M3 — DACL Abuse
+
+Exploiting **Active Directory permission misconfigurations**.
+
+Common vulnerable permissions:
+
+| Permission | Impact |
+| --- | --- |
+| GenericAll | Full control over object |
+| GenericWrite | Modify attributes |
+| WriteDACL | Modify access control |
+| WriteOwner | Take ownership |
+
+Attackers can escalate privileges by abusing these permissions.
+
+---
+
+## M4 — Abusing Kerberos
+
+Kerberos authentication weaknesses allow extraction of password hashes.
+
+Techniques covered:
+
+- AS-REP Roasting
+- Kerberoasting
+- Timeroasting
+- Kerberos brute force
+- Delegation abuse
+
+These attacks allow **offline password cracking**.
+
+---
+
+## M5 — Credential Dumping
+
+After gaining privileges, attackers extract credentials from:
+
+| Source | Data |
+| --- | --- |
+| SAM | Local account hashes |
+| LSASS | Memory credentials |
+| NTDS.dit | Domain password database |
+| Registry Hives | System keys |
+| Domain Cache | Cached credentials |
+
+Major techniques:
+
+- NTDS.dit extraction
+- SAM dumping
+- DCSync attack
+- LAPS credential retrieval
+- gMSA credential extraction
+
+---
+
+## M6 — Kerberos Ticket Attacks
+
+Kerberos tickets can be forged to maintain domain access.
+
+Techniques covered:
+
+| Attack | Description |
+| --- | --- |
+| Golden Ticket | Forged TGT using KRBTGT hash |
+| Silver Ticket | Forged service ticket |
+| Diamond Ticket | Modified ticket from valid TGT |
+| Sapphire Ticket | Advanced forged ticket |
+| Pass-the-Ticket | Reusing stolen Kerberos ticket |
+
+These attacks allow **persistent unauthorized access** to the domain.
+
+---
+
+# Project Structure
+
+```
+AD-Pentest-Lab
+│
+├── Documentation
+│
+├── M1-Initial-AD-Exploitation
+│
+├── M2-AD-Post-Enumeration
+│
+├── M3-DACL-Abuse
+│
+├── M4-Abusing-Kerberos
+│
+├── M5-Credential-Dumping
+│
+├── M6-Kerberos-Ticket-Attacks
+│
+└── README.md
+```
+
+---
+
+# Learning Outcomes
+
+This project demonstrates practical understanding of:
+
+- Active Directory internals
+- AD attack paths
+- Kerberos authentication
+- credential theft techniques
+- privilege escalation in enterprise environments
+- detection engineering using SIEM
+
+---
+
+# Disclaimer
+
+This project is for **educational and defensive cybersecurity research only**.
+
+All attacks were performed in a **controlled lab environment**.
+
+Do not attempt these techniques against systems without authorization.
